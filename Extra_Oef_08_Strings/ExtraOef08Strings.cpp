@@ -6,7 +6,7 @@
 
 #define MAX_ADRESSEN 1000
 
-std::string readInputFromUser();
+std::string readStringFromUser();
 void readAllInputFromUser(std::string* pAdressen, int* pCounter);
 std::string readSearchStringFromUser();
 int findOccurencesInAllStrings(std::string* pAdressen, std::string searchString, int* pCounter);
@@ -25,7 +25,7 @@ int main()
 	return 0;
 }
 
-std::string readInputFromUser()
+std::string readStringFromUser()
 {
 	std::string tmp;
 
@@ -44,7 +44,7 @@ void readAllInputFromUser(std::string* pAdressen, int* pCounter)
 
 	do
 	{
-		input = readInputFromUser();
+		input = readStringFromUser();
 		if (input != "*")
 		{
 			*pAdressen = input;
