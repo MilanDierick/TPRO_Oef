@@ -2,36 +2,57 @@
 #include <iostream>
 #include <Windows.h>
 #include <ctime>
+#include <chrono>
+#include <thread>
+
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
+#define SLEEP_TIME_DEFAULT 256
+#define SLEEP_UPDATE_INTERVAL 1
+#define WORLD_CHARACTER_FILL '0'
+#define WORLD_CHARACTER_PLAYER '1'
 
 World::World(Pacman *wout, Pacman *kim, const int height, const int width)
 {
-	this->wout = wout;
-	this->kim = kim;
+	this->pacman1 = wout;
 	this->height = height;
 	this->width = width;
-	map.resize(width, std::vector<char>(height, ' '));
+	map.resize(width, std::vector<char>(height, WORLD_CHARACTER_FILL));
 }
 
 void World::update()
 {
-	map[wout->positie->y][wout->positie->x] = ' ';
+	if (GetAsyncKeyState(VK_DOWN) && pacman1->getPositie()->getY() < height -1)
+	{
+		map[pacman1->getPositie()->getY()][pacman1->getPositie()->getX()] = WORLD_CHARACTER_FILL;
+		pacman1->getPositie()->setY(pacman1->getPositie()->getY() + 1);
+		map[pacman1->getPositie()->getY()][pacman1->getPositie()->getX()] = WORLD_CHARACTER_PLAYER;
+		draw();
+	}
 
+	else if (GetAsyncKeyState(VK_UP) && pacman1->getPositie()->getY() > 0)
+	{
+		map[pacman1->getPositie()->getY()][pacman1->getPositie()->getX()] = WORLD_CHARACTER_FILL;
+		pacman1->getPositie()->setY(pacman1->getPositie()->getY() - 1);
+		map[pacman1->getPositie()->getY()][pacman1->getPositie()->getX()] = WORLD_CHARACTER_PLAYER;
+		draw();
+	}
 
-	if (GetAsyncKeyState(VK_DOWN) && wout->positie->y < height -1)
-			wout->positie->y++;
+	else if (GetAsyncKeyState(VK_RIGHT) && pacman1->getPositie()->getX() < width - 1)
+	{
+		map[pacman1->getPositie()->getY()][pacman1->getPositie()->getX()] = WORLD_CHARACTER_FILL;
+		pacman1->getPositie()->setX(pacman1->getPositie()->getX() + 1);
+		map[pacman1->getPositie()->getY()][pacman1->getPositie()->getX()] = WORLD_CHARACTER_PLAYER;
+		draw();
+	}
 
-	else if (GetAsyncKeyState(VK_UP) && wout->positie->y > 0)
-		wout->positie->y--;
-
-	else if (GetAsyncKeyState(VK_RIGHT) && wout->positie->x < width - 1)
-		wout->positie->x++;
-
-	else if (GetAsyncKeyState(VK_LEFT) && wout->positie->x > 0)
-		wout->positie->x--;
-
-	map[wout->positie->y][wout->positie->x] = '#';
+	else if (GetAsyncKeyState(VK_LEFT) && pacman1->getPositie()->getX() > 0)
+	{
+		map[pacman1->getPositie()->getY()][pacman1->getPositie()->getX()] = WORLD_CHARACTER_FILL;
+		pacman1->getPositie()->setX(pacman1->getPositie()->getX() - 1);
+		map[pacman1->getPositie()->getY()][pacman1->getPositie()->getX()] = WORLD_CHARACTER_PLAYER;
+		draw();
+	}
 }
 
 void World::cls()
@@ -76,7 +97,10 @@ void World::draw() const
 	for (auto x = 0; x < height; ++x)
 	{
 		for (auto y = 0; y < width; ++y)
+		{
 			std::cout << map[x][y];
+			//std::this_thread::sleep_for(std::chrono::microseconds(SLEEP_UPDATE_INTERVAL));
+		}
 		std::cout << std::endl;
 	}
 }
@@ -84,7 +108,7 @@ void World::draw() const
 void World::run()
 {
 	auto isRunning = true;
-
+	
 	do
 	{
 		using namespace std;
@@ -92,13 +116,13 @@ void World::run()
 
 		//cls();
 		update();
-		draw();
+		//draw();
 
 		const auto end = clock();
-
-		if (double(end - begin) / CLOCKS_PER_SEC < 0.016)
-			Sleep(256 - double(end - begin));
-
+		
+		if (double(end - begin) < 16)
+			Sleep(16 - double(end - begin));
+			
 		if (GetAsyncKeyState(VK_ESCAPE))
 		{
 			system("CLS");
@@ -112,8 +136,48 @@ void World::run()
 // x is the column, y is the row. The origin (0,0) is top-left.
 void World::setCursorPosition(const int x, const int y)
 {
-	static const HANDLE H_OUT = GetStdHandle(STD_OUTPUT_HANDLE);
+	static const auto H_OUT = GetStdHandle(STD_OUTPUT_HANDLE);
 	std::cout.flush();
 	const COORD coord = { static_cast<SHORT>(x), static_cast<SHORT>(y) };
 	SetConsoleCursorPosition(H_OUT, coord);
+}
+
+Pacman* World::getPacman1() const
+{
+	return pacman1;
+}
+
+void World::setPacman1(Pacman* const pacman1)
+{
+	this->pacman1 = pacman1;
+}
+
+int World::getHeight() const
+{
+	return height;
+}
+
+void World::setHeight(const int height)
+{
+	this->height = height;
+}
+
+int World::getWidth() const
+{
+	return width;
+}
+
+void World::setWidth(const int width)
+{
+	this->width = width;
+}
+
+std::vector<std::vector<char>> World::getMap() const
+{
+	return map;
+}
+
+void World::setMap(const std::vector<std::vector<char>>& map)
+{
+	this->map = map;
 }
